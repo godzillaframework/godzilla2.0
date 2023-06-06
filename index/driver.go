@@ -1,6 +1,7 @@
 package index
 
 import (
+	"errors"
 	"io"
 	"io/fs"
 )
@@ -25,4 +26,20 @@ type Driver interface {
 	RemoveFile(path string) error
 	FileSize(path string) (int64, error)
 	FileModTime(path string) (int64, error)
+}
+
+// Register a driver
+func Register(name string, driverCreator func(config any) (Driver, error)) {
+	registry[name] = driverCreator
+}
+
+// gettin a driver
+func Get(name string, config any) (Driver, error) {
+	driverCreator, ok := registry[name]
+
+	if !ok {
+		return nil, errors.New("driver not found")
+	}
+
+	return driverCreator(config)
 }
